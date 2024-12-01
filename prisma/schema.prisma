@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Script {
+  id             Int               @id @default(autoincrement())
+  url            String?           @db.Text
+  notionBlockId  String?           @unique @db.VarChar(50)
+  title          String?           @db.VarChar(500)
+  createdAt      DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime?         @db.Timestamptz(6)
+  scriptLines    ScriptLine[]      // Relation to ScriptLine
+}
+
+model ScriptLine {
+  id             Int               @id @default(autoincrement())
+  scriptId       Int
+  notionBlockId  String?           @db.VarChar(50)
+  content        String?           @db.Text
+  state          Int               @default(1)
+  createdAt      DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime?         @db.Timestamptz(6)
+  script         Script            @relation(fields: [scriptId], references: [id], onDelete: Cascade)
+  improvements   ScriptLineImprovement[]
+}
+
+model ScriptLineImprovement {
+  id             Int               @id @default(autoincrement())
+  scriptLineId   Int
+  content        String?           @db.Text
+  createdAt      DateTime          @default(now()) @db.Timestamptz(6)
+  scriptLine     ScriptLine        @relation(fields: [scriptLineId], references: [id], onDelete: Cascade)
+}
