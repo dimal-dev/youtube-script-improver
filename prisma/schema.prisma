@@ -29,6 +29,7 @@ model ScriptLine {
   notionBlockId  String?           @db.VarChar(50)
   content        String?           @db.Text
   state          Int               @default(1)
+  hasImprovements Boolean          @default(false)
   createdAt      DateTime          @default(now()) @db.Timestamptz(6)
   updatedAt      DateTime?         @db.Timestamptz(6)
   script         Script            @relation(fields: [scriptId], references: [id], onDelete: Cascade)
