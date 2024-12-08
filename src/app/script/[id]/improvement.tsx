@@ -5,7 +5,6 @@ import DiffMatchPatch from "diff-match-patch";
 import Prisma from '@prisma/client'
 
 const letters = [...(new Array(26)).keys()].map(index => String.fromCharCode(97 + index))
-console.log(letters)
 
 function applyNode(nodes: DiffMatchPatch.Diff[], applyNodeIndex: number) {
     let finalText = '';

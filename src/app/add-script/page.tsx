@@ -5,11 +5,13 @@ import notion from "@/lib/notion";
 
 const pageId = '14bfadbb073f80b98752da66d0b66647';
 
-const initialState = {
-    message: '',
-}
 
 export default function AddScriptPage() {
+    const initialState: {
+        message?: string
+    } = {
+        message: '',
+    }
     const [state, formAction] = useActionState(addScriptHandler, initialState)
 
     return (

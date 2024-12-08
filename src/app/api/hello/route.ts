@@ -1,6 +1,6 @@
 import {NextRequest, NextResponse} from 'next/server'
 import prisma from "@/lib/db";
-import {getMockChatGPTResponse} from "@/services/chatgpt";
+import {getMockChatGPTResponse} from "@/lib/chatgpt";
 import {ID} from "postcss-selector-parser";
 
 type ResponseData = {

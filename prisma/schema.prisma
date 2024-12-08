@@ -16,7 +16,7 @@ datasource db {
 model Script {
   id             Int               @id @default(autoincrement())
   url            String?           @db.Text
-  notionBlockId  String?           @unique @db.VarChar(50)
+  notionBlockId  String?           @db.VarChar(50)
   title          String?           @db.VarChar(500)
   createdAt      DateTime          @default(now()) @db.Timestamptz(6)
   updatedAt      DateTime?         @db.Timestamptz(6)

@@ -3,9 +3,9 @@ import {redirect} from "next/navigation";
 import prisma from "@/lib/db";
 import notion from "@/lib/notion";
 
-export default async function addScriptHandler(prevState: {
-    message?: string;
-}, formData: FormData) {
+export default async function addScriptHandler(state, formData: FormData) {
+
+// export default async function addScriptHandler(state: void, formData: FormData) {
     'use server'
 
     const url = formData.get('url') as string;

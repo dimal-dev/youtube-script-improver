@@ -5,20 +5,6 @@ export enum ScriptLineState {
     MODIFIED = 2,
 }
 
-// const prismaClientSingleton = () => new PrismaClient();
-//
-// declare const globalThis: {
-//     prismaGlobal: ReturnType<typeof prismaClientSingleton>;
-// } & typeof global;
-//
-// const prisma = globalThis.prismaGlobal ?? prismaClientSingleton();
-//
-// export default prisma;
-//
-// if (process.env.NODE_ENV !== 'production') {
-//     globalThis.prismaGlobal = prisma;
-// }
-
 const prisma = (() => {
     let prismaClient: PrismaClient | undefined;
 
@@ -32,5 +18,13 @@ const prisma = (() => {
         return prismaClient;
     }
 })();
+
+export async function getScriptLinesOutOfSyncCount() {
+    return prisma().scriptLine.count({
+        where: {
+            state: ScriptLineState.MODIFIED
+        }
+    });
+}
 
 export default prisma();

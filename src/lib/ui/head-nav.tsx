@@ -7,7 +7,7 @@ export default function HeadNav() {
     const pathname = usePathname();
 
     return (
-        <div className='text-center p-2 border-b-2'>
+        <div className='text-center p-2'>
             <CustomNavLink href="/add-script">
                 Add Script
             </CustomNavLink>

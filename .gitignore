@@ -42,3 +42,4 @@ next-env.d.ts
 
 # other
 .export_gpt
+.logs/

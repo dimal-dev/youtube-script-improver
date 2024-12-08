@@ -21,6 +21,7 @@ const isParagraph = (item: PartialBlockObjectResponse | BlockObjectResponse): it
 const loadNotionEntries = async (blockId: string): Promise<Line[]> => {
     const allEntries = [];
     let nextIterationCursor = null
+    let hasMore = false;
     do {
         let params: {
             block_id: string;
@@ -37,7 +38,7 @@ const loadNotionEntries = async (blockId: string): Promise<Line[]> => {
             }
         }
         const res = await notion.blocks.children.list(params);
-        const {results, has_more, next_cursor} = res
+        const {results, next_cursor} = res
         const scriptEntries = results.filter((item: PartialBlockObjectResponse | BlockObjectResponse): item is ParagraphBlockObjectResponse => {
             if (!isParagraph(item)) {
                 return false
@@ -68,33 +69,17 @@ const loadNotionEntries = async (blockId: string): Promise<Line[]> => {
                 blockId, text
             }
         });
-        allEntries.push(...scriptEntriesClean)
-        if (!has_more) break;
+        allEntries.push(...scriptEntriesClean);
         nextIterationCursor = next_cursor
-    } while (true)
+
+        hasMore = res.has_more;
+    } while (hasMore)
 
     return allEntries;
 }
 
-const loadNotionEntriesMock = async (blockId: string): Promise<Line[]> => {
-    let i = 1;
-    const lines: Line[] = [
-        {blockId: `adsfasdfasdf_${i}`, text: `Line ${i++} of text`},
-        {blockId: `adsfasdfasdf_${i}`, text: `Line ${i++} of text`},
-        {blockId: `adsfasdfasdf_${i}`, text: `Line ${i++} of text`},
-        {blockId: `adsfasdfasdf_${i}`, text: `Line ${i++} of text`},
-        {blockId: `adsfasdfasdf_${i}`, text: `Line ${i++} of text`},
-        {blockId: `adsfasdfasdf_${i}`, text: `Line ${i++} of text`},
-        {blockId: `adsfasdfasdf_${i}`, text: `Line ${i++} of text`},
-    ];
-
-    return new Promise(resolve => {
-        resolve(lines);
-    });
-}
-
-export default async function pullHandler(scriptId: number, scriptBlockId: string): Promise<boolean> {
-    const lines = await loadNotionEntriesMock(scriptBlockId);
+export default async function notionPullHandler(scriptId: number, scriptBlockId: string): Promise<boolean> {
+    const lines = await loadNotionEntries(scriptBlockId);
     const linesToInsert = [];
     for (const line of lines) {
         linesToInsert.push({

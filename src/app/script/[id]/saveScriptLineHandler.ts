@@ -1,5 +1,5 @@
 'use server'
-import prisma, {ScriptLineState} from "@/lib/db";
+import prisma, {getScriptLinesOutOfSyncCount, ScriptLineState} from "@/lib/db";
 
 export default async function saveScriptLineHandler(
     scriptLineId: number, newContent: string
@@ -14,10 +14,10 @@ export default async function saveScriptLineHandler(
     }
 
     if (scriptLine.content?.trim() === newContent.trim()) {
-        return true;
+        return getScriptLinesOutOfSyncCount();
     }
 
-    return prisma.scriptLine.update({
+    const updateResult = await prisma.scriptLine.update({
         where: {
             id: scriptLineId,
         },
@@ -27,4 +27,6 @@ export default async function saveScriptLineHandler(
             updatedAt: new Date()
         }
     });
+
+    return getScriptLinesOutOfSyncCount();
 }

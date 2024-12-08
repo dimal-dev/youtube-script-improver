@@ -1,24 +1,31 @@
 'use client'
 
 import Prisma from '@prisma/client'
-import {stringDiff} from "@/lib/stringDiff";
-import DiffMatchPatch from "diff-match-patch";
 import Improvement from "@/app/script/[id]/improvement";
-import {useState, useRef} from "react";
+import {useState, useRef, useContext} from "react";
 import saveScriptLineHandler from "@/app/script/[id]/saveScriptLineHandler";
 import deleteScriptImprovements from "@/app/script/[id]/deleteScriptImprovements";
+import {ScriptLinesOutOfSyncSetterContext} from "@/app/script/[id]/lines-and-buttons";
 
 
 export default function Line(
-    {scriptLine, i}: { scriptLine: Prisma.ScriptLine & { improvements: Prisma.ScriptLineImprovement[] }, i: number }
+    {scriptLine, i, checkedLines, checked, setChecked}: {
+        scriptLine: Prisma.ScriptLine & { improvements: Prisma.ScriptLineImprovement[] },
+        i: number,
+        checkedLines: Set<number>,
+        checked: boolean,
+        setChecked: (lineId: number, flag: boolean) => void
+    }
 ) {
     const [initialContent, setInitialContent] = useState<string>(scriptLine.content ?? '');
     const [originalContent, setOriginalContent] = useState<string>(scriptLine.content ?? '');
     const [edit, setEdit] = useState(false);
     const [saving, setSaving] = useState(false);
     const [completing, setCompleting] = useState(false);
+    // const [checked, setChecked] = useState(false)
     const [scriptLineImprovements, setScriptLineImprovements] = useState(scriptLine.improvements);
     const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
+    const setScriptLinesOutOfSync = useContext(ScriptLinesOutOfSyncSetterContext);
 
     const whenHasImprovementsClassname = scriptLine.hasImprovements ? 'hover:cursor-pointer' : '';
     const extraEmoji = scriptLineImprovements.length > 0 ? '📝┋' : '';
@@ -56,7 +63,7 @@ export default function Line(
         }
     }
 
-    const saveOriginalContent = async (newContent?: string) => {
+    const saveOriginalContent = async () => {
         if (!modified) {
             return;
         }
@@ -65,8 +72,8 @@ export default function Line(
         setSaving(true);
 
         try {
-            const contentToSave = newContent ? newContent : originalContent;
-            const res = await saveScriptLineHandler(scriptLine.id, contentToSave);
+            const linesOutOfSync = await saveScriptLineHandler(scriptLine.id, originalContent);
+            setScriptLinesOutOfSync(linesOutOfSync)
             setInitialContent(originalContent);
         } catch (e) {
             console.error(e);
@@ -81,11 +88,10 @@ export default function Line(
         content = (
             <textarea className='w-full resize-none' value={originalContent} ref={textAreaRef}
                       onChange={(e) => setOriginalContent(e.target.value)}
-                      onKeyDown={(e) => {
+                      onKeyDown={async (e) => {
                           if (e.metaKey && (e.key === 'Enter' || e.keyCode === 13)) {
-                              setOriginalContent(e.target.value);
-                              saveOriginalContent(e.target.value);
                               setEdit(false)
+                              await saveOriginalContent();
                           }
                       }}
                       onBlur={() => setEdit(false)}
@@ -102,7 +108,7 @@ export default function Line(
         <div className={scriptLineImprovements.length > 0 ? 'visible' : 'invisible  h-0'}>
             <button type="button"
                     className={
-                        `text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2  disabled:opacity-50 disabled:pointer-events-none`}
+                        `text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 disabled:opacity-50 disabled:pointer-events-none`}
                     disabled={completing}
                     onClick={async () => {
                         const start = Date.now()
@@ -147,6 +153,14 @@ export default function Line(
 
     return (
         <li className={`pl-3 py-3 border-b-2 flex`}>
+            <div className="mr-4">
+                <input type="checkbox" checked={checked}
+                       onChange={e => {
+                           setChecked(scriptLine.id, !checked)
+                       }
+                       }
+                />
+            </div>
             <div className='flex-grow'>
                 <div className={whenHasImprovementsClassname + ' flex'}>
                     <div className='w-max text-nowrap'>
